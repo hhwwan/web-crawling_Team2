@@ -1,0 +1,71 @@
+import requests
+from bs4 import BeautifulSoup
+
+base_url = 'https://www.10000recipe.com/recipe/list.html?order=reco&page='
+headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'}
+
+# 1페이지부터 10페이지까지 크롤링
+for page_num in range(1, 3):  # 페이지 번호 1~10
+    page_url = f'{base_url}{page_num}'  # 각 페이지의 URL 생성
+    # print(f"Fetching data from: {page_url}") # 각 페이지 확인용
+
+    response = requests.get(page_url, headers=headers)
+    if response.status_code == 200: # HTTP요청이 성공한다면
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+
+        # 레시피 링크들 가져오기 (이미지가 포함된 링크들)
+        recipe_links = soup.select('div.common_sp_thumb a')
+        if recipe_links:
+            for link in recipe_links:
+                recipe_url = link.get('href')  # 레시피 페이지 링크 추출
+                final_url = f'https://www.10000recipe.com{recipe_url}'  # 전체 URL로 완성
+
+                # 각 레시피 페이지에서 정보 크롤링
+                recipe_response = requests.get(final_url, headers=headers)
+                if recipe_response.status_code == 200: # HTTP요청이 성공한다면
+                    recipe_html = recipe_response.text
+                    recipe_soup = BeautifulSoup(recipe_html, 'html.parser')
+
+                    # 메뉴 이름 가져오기
+                    menu_name = recipe_soup.select_one('div.view2_summary.st3 h3')
+                    if menu_name:
+                        print(f'메뉴명: {menu_name.get_text(strip=True)}')  # 메뉴 이름 출력
+
+                    # 추가 정보 가져오기
+                    servings = recipe_soup.select_one('span.view2_summary_info1')  # 인분
+                    time = recipe_soup.select_one('span.view2_summary_info2')      # 시간
+                    difficulty = recipe_soup.select_one('span.view2_summary_info3')  # 난이도
+
+                    if servings:
+                        print(f'양: {servings.get_text(strip=True)}')
+                    if time:
+                        print(f'시간: {time.get_text(strip=True)}')
+                    if difficulty:
+                        print(f'난이도: {difficulty.get_text(strip=True)}')
+        
+                    # 재료명, 양념 가져오기 (예: 치킨너겟, 진간장)
+                    ingredient_names = recipe_soup.select('div.ingre_list_name a')
+                    ingredient_quantities = recipe_soup.select('span.ingre_list_ea')
+
+                    if ingredient_names and ingredient_quantities:
+                        for ingredient_name, ingredient_quantity in zip(ingredient_names, ingredient_quantities):
+                            # 'span' 태그를 제외하고 'a' 태그 내의 텍스트만 가져오기 -> 이게 없으면 https://www.10000recipe.com/recipe/7039214 이 사이트의 경우 치킨너겟11개, 11개로 출력됨
+                            span_tag = ingredient_name.find('span')  # 'span' 태그 찾기
+                            if span_tag:
+                                span_tag.decompose()  # 'span' 태그를 제거
+                            ingredient_name_text = ingredient_name.get_text(strip=True)
+                            
+                            # 양념/수량을 가져오기
+                            ingredient_quantity_text = ingredient_quantity.get_text(strip=True)
+
+                            # 재료 이름과 양념/수량 출력
+                            print(f'재료 및 양념: {ingredient_name_text}, {ingredient_quantity_text}')
+                    print() # 각 레시피 끝에 빈 줄 추가
+                else:
+                    print(f'Failed. Status code: {recipe_response.status_code}')
+        else:
+            print("No recipe links found.")
+
+    else:
+        print(f'Failed. Status code: {response.status_code}')
