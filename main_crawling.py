@@ -77,8 +77,6 @@ def extract_tools(recipe_url):
         return list({tool.get_text(strip=True) for tool in tool_names})  # 중복 제거
     return []
 
-from bs4 import BeautifulSoup
-
 def extract_recipe_data(recipe_url):
     """레시피 페이지에서 조리 순서 추출"""
     recipe_soup = fetch_recipe_html(recipe_url)
