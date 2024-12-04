@@ -59,15 +59,15 @@ def extract_ingredients(recipe_url):
     recipe_soup = fetch_recipe_html(recipe_url)
     if recipe_soup:
         # 재료명, 양념 가져오기
-        ingredient_names = recipe_soup.select('div.ingre_list_name a')
-        ingredient_quantities = recipe_soup.select('span.ingre_list_ea')
-        ingredients = set()  # 중복 제거를 위해 set 사용
+        ingredient_names = recipe_soup.select('div.ingre_list_name a') or []
+        ingredient_quantities = recipe_soup.select('span.ingre_list_ea') or []
+        ingredients = {}
 
-        # 재료명과 양념 리스트 반환
+        # 재료명과 양념 딕셔너리 반환
         for name, quantity in zip(ingredient_names, ingredient_quantities):
-            ingredients.add(f"{name.get_text(strip=True)}, {quantity.get_text(strip=True)}")
-        return list(ingredients)
-    return []
+            ingredients[name.get_text(strip=True)] = quantity.get_text(strip=True)
+        return ingredients
+    return {}
     
 def extract_tools(recipe_url):
     """레시피 페이지에서 조리도구 추출"""
@@ -82,16 +82,29 @@ def extract_recipe_data(recipe_url):
     recipe_soup = fetch_recipe_html(recipe_url)
     if recipe_soup:
         steps = []
-        # 조리 순서와 이미지 추출
+        # 조리 순서 추출
         step_divs = recipe_soup.select('div.view_step_cont.media')
         for step_div in step_divs:
             step_text = step_div.select_one('div.media-body')
-            step_img = step_div.select_one('div.media-right img')
-            step_data = {
-                'text': step_text.get_text(strip=True) if step_text else '',
-                'image_url': step_img['src'] if step_img else ''
-            }
-            steps.append(step_data)
+            if step_text:
+                # <a> 태그는 제거
+                for a_tag in step_text.find_all('a'):
+                    a_tag.decompose()  # <a> 태그 제거
+                
+                # p 태그가 있을 경우 처리
+                p_tags = step_text.find_all('p')
+                if p_tags:
+                    for p_tag in p_tags:
+                        p_text = p_tag.get_text(strip=True)
+                        # p 텍스트만 있을 경우 괄호를 추가
+                        if p_text:
+                            step_text.append(f' ({p_text})')  # 괄호로 감싸서 추가
+
+                # 텍스트만 추출
+                step_data = {
+                    'text': step_text.get_text(strip=True)  # 텍스트만 추출
+                }
+                steps.append(step_data)
         return steps
     return []
 
@@ -105,16 +118,13 @@ def transform_recipe_data(recipe_id, recipe_data, ingredients, tools, recipe_ste
         'Serving': recipe_data['servings'],
         'Time': recipe_data['time'],
         'Level': recipe_data['difficulty'],
-        'Ingredients': [],
+        'Ingredients': ingredients,
         'Tools': tools,
         'Recipe steps': []
     }
-    for ingredient in ingredients:
-        transformed_data['Ingredients'].append(ingredient)  # 이미 완성된 문자열 사용
 
     for i, step in enumerate(recipe_steps, start=1):
-        # 조리 단계를 "Step {n}: {text}" 형식으로 저장
-        step_text = f"Step {i}: {step['text']}"
+        step_text = step['text']
         transformed_data['Recipe steps'].append(step_text)
 
     return transformed_data
@@ -149,19 +159,11 @@ def load_data(recipe_id, transformed_data):
         print(f"Serving: {transformed_data['Serving']}")
         print(f"Time: {transformed_data['Time']}")
         print(f"Level: {transformed_data['Level']}")
-        print("Ingredients:")
-        for ingredient in transformed_data['Ingredients']:
-            print(f"  - {ingredient}")
+        print(f"Ingredients: {transformed_data['Ingredients']}")
         print(f"Tools: {transformed_data['Tools']}")
         print("Recipe steps:")
         for i, step in enumerate(transformed_data['Recipe steps'], start=1):
-            # step이 문자열인지 딕셔너리인지 확인
-            if isinstance(step, dict):
-                print(f"  Step {i}: {step.get('text', 'No description')}")
-            elif isinstance(step, str):
-                print(f"  Step {i}: {step}")
-            else:
-                print(f"  Step {i}: Unknown format")
+            print(f"{step}")
     else:
         print(f"레시피 ID {recipe_id}에서 데이터를 로드할 수 없습니다.")
         
@@ -188,7 +190,8 @@ def main():
     # 1페이지부터 2페이지까지 크롤링
     for page_num in range(1, 2):  # 페이지 번호 1~2
         ETL_process(page_num)
-        t.sleep(0.2)  # 요청 간 0.2초 지연
+        t.sleep(0.5)  # 요청 간 0.5초 지연
+
 
 if __name__ == '__main__':
     main()
