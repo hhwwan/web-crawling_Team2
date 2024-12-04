@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ recipe.Title }}</title>
+</head>
+<body>
+    <h1>{{ recipe.Title }}</h1>
+
+    <p><strong>Serving:</strong> {{ recipe.Serving }}</p>
+    <p><strong>Time:</strong> {{ recipe.Time }}</p>
+    <p><strong>Level:</strong> {{ recipe.Level }}</p>
+    
+    <h2>Ingredients:</h2>
+    <ul>
+        {% for ingredient, amount in recipe.Ingredients.items %}
+            <li>{{ ingredient }}: {{ amount }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Tools:</h2>
+    <ul>
+        {% for tool in recipe.Tools %}
+            <li>{{ tool }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Steps:</h2>
+    <ol>
+        {% for step in recipe.recipe_steps %}
+            <li>{{ step }}</li>
+        {% endfor %}
+    </ol>
+
+
+    <a href="{% url 'index' %}">Back to search</a>
+</body>
+</html>
