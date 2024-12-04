@@ -1,34 +1,92 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Search Results</title>
+    <title>Search Recipes</title>
+    <!-- 부트스트랩 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 로컬 CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>Search Results</h1>
+    <div class="container">
+        <!-- 중앙 정렬된 제목 -->
+        <h1 class="text-center my-4">Search Recipes</h1>
 
-    <form method="get" action="{% url 'index' %}">
-        <input type="text" name="ingredient" placeholder="Enter ingredient" value="{{ query }}">
-        <button type="submit">Search</button>
-    </form>
+        <!-- 검색 폼 -->
+        <form class="search-form shadow-sm p-4 mb-4 bg-white rounded" method="get" action="{% url 'index' %}">
+            <div class="row mb-3">
+                <!-- Ingredient 검색칸 -->
+                <div class="col-12 col-md-10">
+                    <label for="ingredient" class="form-label">Ingredient:</label>
+                    <input type="text" id="ingredient" name="ingredient" class="form-control" placeholder="Enter ingredient" value="{{ query }}">
+                </div>
+                <!-- Search 버튼 -->
+                <div class="col-12 col-md-2 d-flex align-items-end justify-content-end">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </div>
+            <div class="row">
+                <!-- Level 선택 -->
+                <div class="col-md-6">
+                    <label for="level" class="form-label">Level:</label>
+                    <select id="level" name="level" class="form-select">
+                        <option value="">-- Select Level --</option>
+                        {% for level in unique_levels %}
+                            <option value="{{ level }}" {% if level == selected_level %}selected{% endif %}>{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Time 선택 -->
+                <div class="col-md-6">
+                    <label for="time" class="form-label">Time:</label>
+                    <select id="time" name="time" class="form-select">
+                        <option value="">-- Select Time --</option>
+                        <option value="10미만" {% if selected_time == "10미만" %}selected{% endif %}>10분 미만</option>
+                        <option value="10분대" {% if selected_time == "10분대" %}selected{% endif %}>10분대</option>
+                        <option value="20분대" {% if selected_time == "20분대" %}selected{% endif %}>20분대</option>
+                        <option value="30분대" {% if selected_time == "30분대" %}selected{% endif %}>30분대</option>
+                        <option value="40분대" {% if selected_time == "40분대" %}selected{% endif %}>40분대</option>
+                        <option value="50분대" {% if selected_time == "50분대" %}selected{% endif %}>50분대</option>
+                        <option value="60이상" {% if selected_time == "60이상" %}selected{% endif %}>60분 이상</option>
+                    </select>
+                </div>
+            </div>
+        </form>
 
-    <hr>
+        <!-- 에러 메시지 -->
+        {% if error_message %}
+            <p class="error-message text-center">{{ error_message }}</p>
+        {% endif %}
 
-    {% if recipes %}
-        <ul>
-            {% for recipe in recipes %}
-                <li>
-                    <a href="{% url 'recipe_detail' recipe.ID %}">
-                        <h2>{{ recipe.Title }}</h2>
-                    </a>
-                    <p><strong>Serving:</strong> {{ recipe.Serving }}</p>
-                    <p><strong>Time:</strong> {{ recipe.Time }}</p>
-                    <p><strong>Level:</strong> {{ recipe.Level }}</p>
-                    <p><strong>Ingredients:</strong> {{ recipe.Ingredients|join:", " }}</p>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No recipes found for "{{ query }}"</p>
-    {% endif %}
+        <!-- 검색 결과 -->
+        <div class="row">
+            {% if recipes %}
+                {% for recipe in recipes %}
+                    <div class="col-md-6 recipe-card">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{% url 'recipe_detail' recipe.ID %}" class="text-decoration-none">
+                                        {{ recipe.Title }}
+                                    </a>
+                                </h5>
+                                <p class="card-text"><strong>Serving:</strong> {{ recipe.Serving }}</p>
+                                <p class="card-text"><strong>Time:</strong> {{ recipe.Time }}</p>
+                                <p class="card-text"><strong>Level:</strong> {{ recipe.Level }}</p>
+                                <p class="card-text"><strong>Ingredients:</strong> {{ recipe.Ingredients|join:", " }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-center">No recipes found for your criteria</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 부트스트랩 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
