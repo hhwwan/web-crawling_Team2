@@ -77,6 +77,8 @@ def extract_tools(recipe_url):
         return list({tool.get_text(strip=True) for tool in tool_names})  # 중복 제거
     return []
 
+from bs4 import BeautifulSoup
+
 def extract_recipe_data(recipe_url):
     """레시피 페이지에서 조리 순서 추출"""
     recipe_soup = fetch_recipe_html(recipe_url)
@@ -87,22 +89,19 @@ def extract_recipe_data(recipe_url):
         for step_div in step_divs:
             step_text = step_div.select_one('div.media-body')
             if step_text:
-                # <a> 태그는 제거
-                for a_tag in step_text.find_all('a'):
-                    a_tag.decompose()  # <a> 태그 제거
-                
-                # p 태그가 있을 경우 처리
+                # p 태그 내부에서 a 태그를 제거하고, p 태그 텍스트를 괄호로 감쌈
                 p_tags = step_text.find_all('p')
-                if p_tags:
-                    for p_tag in p_tags:
-                        p_text = p_tag.get_text(strip=True)
-                        # p 텍스트만 있을 경우 괄호를 추가
-                        if p_text:
-                            step_text.append(f' ({p_text})')  # 괄호로 감싸서 추가
+                for p in p_tags:
+                    # a 태그가 있을 경우 해당 p 태그를 제거
+                    if p.find_all('a'):
+                        p.decompose()
+                    else:
+                        # p 태그 내부 텍스트를 괄호로 감쌈
+                        p.insert_before(f"({p.get_text(strip=True)})")
+                        p.decompose()
 
-                # 텍스트만 추출
                 step_data = {
-                    'text': step_text.get_text(strip=True)  # 텍스트만 추출
+                    'text': step_text.get_text(strip=True)
                 }
                 steps.append(step_data)
         return steps
