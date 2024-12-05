@@ -40,8 +40,6 @@ media/
 uploads/
 
 # Django static 및 캐시
-staticfiles/
-static/
 *.sass-cache
 node_modules/
 npm-debug.log

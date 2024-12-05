@@ -1,5 +1,6 @@
+{% extends "base.html" %}
 {% load static %}
-
+{% block content %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,28 +12,32 @@
 </head>
 <body>
     <div class="container">
-        <!-- 중앙 정렬된 제목 -->
-        <h1 class="text-center my-4">Search Recipes</h1>
+        <div class="mt-5 row justify-content-center">
+            <img src="{% static 'image/icon.png' %}" 
+                class="img-fluid" style="width: 100px; height: 80px;" alt="logo"/>
+        </div>
+
+        <h1 class="text-center my-4 mt-3">레시피 검색기</h1>
 
         <!-- 검색 폼 -->
-        <form class="search-form shadow-sm p-4 mb-4 bg-white rounded" method="get" action="{% url 'index' %}">
+        <form class="search-form shadow-sm p-4 mb-4 bg-white rounded mt-5" method="get" action="{% url 'index' %}">
             <div class="row mb-3">
                 <!-- Ingredient 검색칸 -->
                 <div class="col-12 col-md-10">
-                    <label for="ingredient" class="form-label">Ingredient:</label>
-                    <input type="text" id="ingredient" name="ingredient" class="form-control" placeholder="Enter ingredient" value="{{ query }}">
+                    <label for="ingredient" class="form-label">재료</label>
+                    <input type="text" id="ingredient" name="ingredient" class="form-control" placeholder="재료를 입력하세요" value="{{ query }}">
                 </div>
                 <!-- Search 버튼 -->
                 <div class="col-12 col-md-2 d-flex align-items-end justify-content-end">
-                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                    <button type="submit" class="btn btn-primary w-100">검색</button>
                 </div>
             </div>
             <div class="row">
                 <!-- Level 선택 -->
                 <div class="col-md-6">
-                    <label for="level" class="form-label">Level:</label>
+                    <label for="level" class="form-label">난이도</label>
                     <select id="level" name="level" class="form-select">
-                        <option value="">-- Select Level --</option>
+                        <option value="">-- 난이도 선택 --</option>
                         {% for level in unique_levels %}
                             <option value="{{ level }}" {% if level == selected_level %}selected{% endif %}>{{ level }}</option>
                         {% endfor %}
@@ -40,9 +45,9 @@
                 </div>
                 <!-- Time 선택 -->
                 <div class="col-md-6">
-                    <label for="time" class="form-label">Time:</label>
+                    <label for="time" class="form-label">조리시간</label>
                     <select id="time" name="time" class="form-select">
-                        <option value="">-- Select Time --</option>
+                        <option value="">-- 조리시간 선택 --</option>
                         <option value="10미만" {% if selected_time == "10미만" %}selected{% endif %}>10분 미만</option>
                         <option value="10분대" {% if selected_time == "10분대" %}selected{% endif %}>10분대</option>
                         <option value="20분대" {% if selected_time == "20분대" %}selected{% endif %}>20분대</option>
@@ -55,13 +60,15 @@
             </div>
         </form>
 
+        <hr>
+
         <!-- 에러 메시지 -->
         {% if error_message %}
             <p class="error-message text-center">{{ error_message }}</p>
         {% endif %}
 
         <!-- 검색 결과 -->
-        <div class="row">
+        <div class="row" style="margin-bottom: 300px;">
             {% if recipes %}
                 {% for recipe in recipes %}
                     <div class="col-md-6 recipe-card">
@@ -81,7 +88,9 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <p class="text-center">No recipes found for your criteria</p>
+                {% if query %}
+                <p class="text-center" style="font-size: 1.2em;">검색 결과가 없습니다</p>
+                {% endif %}
             {% endif %}
         </div>
     </div>
@@ -90,3 +99,4 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+{% endblock %}
