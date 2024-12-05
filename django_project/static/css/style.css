@@ -39,3 +39,20 @@ h1 {
     min-width: 80px; /* 버튼의 최소 너비 */
     height: 100%;   /* 입력 필드와 동일한 높이 유지 */
 }
+
+/* static/css/styles.css */
+.pagination-container {
+    margin-top: 20px;
+}
+.pagination .page-link {
+    color: #007bff;
+}
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+.pagination .page-link:hover {
+    background-color: #0056b3;
+    color: white;
+}

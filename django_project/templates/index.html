@@ -101,6 +101,41 @@
                 {% endif %}
             {% endif %}
         </div>
+
+        <div class="pagination-container text-center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <!-- '맨앞' 버튼 -->
+                    {% if recipes.number > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&ingredient={{ query }}&level={{ selected_level }}&time={{ selected_time }}" aria-label="First">
+                                맨앞
+                            </a>
+                        </li>
+                    {% endif %}
+        
+                    <!-- 페이지 번호들 -->
+                    {% for num in recipes.paginator.page_range %}
+                        {% if num == recipes.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num >= recipes.number|add:-2 and num <= recipes.number|add:2 %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}&ingredient={{ query }}&level={{ selected_level }}&time={{ selected_time }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+        
+                    <!-- '맨뒤' 버튼 -->
+                    {% if recipes.number < recipes.paginator.num_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ recipes.paginator.num_pages }}&ingredient={{ query }}&level={{ selected_level }}&time={{ selected_time }}" aria-label="Last">
+                                맨뒤
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>        
     </div>
 
     <!-- 부트스트랩 JS -->

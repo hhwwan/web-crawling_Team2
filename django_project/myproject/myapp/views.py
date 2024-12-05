@@ -7,6 +7,8 @@ import concurrent.futures
 from collections import Counter
 from io import BytesIO
 from django.shortcuts import render
+from django.core.paginator import Paginator
+
 
 # 한글 폰트 설정 (Windows에서 한글 폰트 경로를 설정)
 plt.rcParams['font.family'] = 'Malgun Gothic'  # Windows의 경우 'Malgun Gothic'을 사용
@@ -31,9 +33,8 @@ def index(request):
     query = request.GET.get("ingredient", "")  # 재료 검색
     selected_level = request.GET.get("level", "")  # Level 검색
     selected_time = request.GET.get("time", "")  # Time 검색
-
-    # 메시지 초기화
-    error_message = None
+    page_number = request.GET.get("page", 1)  # 페이지 번호
+    error_message = None  # 에러 메시지 초기화
 
     # 초기 상태 처리
     if not request.GET:  # GET 요청에 아무런 파라미터도 없을 경우
@@ -47,7 +48,8 @@ def index(request):
                 "selected_level": "",
                 "selected_time": "",
                 "error_message": None,
-                "graph_url": None  # 그래프 URL은 기본적으로 None
+                "graph_url": None,
+                "page_obj": None,  # 페이지 객체 초기화
             },
         )
 
@@ -79,17 +81,21 @@ def index(request):
     # 필터링된 데이터를 기반으로 그래프 생성
     graph_url = generate_graph(filtered_recipes)
 
+    # 페이지네이션
+    paginator = Paginator(filtered_recipes, 8)  # 한 페이지당 6개 레시피
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "index.html",
         {
-            "recipes": filtered_recipes,
+            "recipes": page_obj,  # 페이지 객체 전달
             "query": query,
             "unique_levels": unique_levels,
             "selected_level": selected_level,
             "selected_time": selected_time,
             "error_message": error_message,
-            "graph_url": graph_url  # 그래프 URL을 템플릿에 전달
+            "graph_url": graph_url,  # 그래프 URL
         },
     )
 
