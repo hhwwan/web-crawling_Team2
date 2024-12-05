@@ -67,6 +67,14 @@
             <p class="error-message text-center">{{ error_message }}</p>
         {% endif %}
 
+        <!-- 그래프 표시 -->
+        {% if graph_url %}
+            <div class="text-left my-4">
+                <h3>Most Frequent Ingredients</h3>
+                <img src="data:image/png;base64,{{ graph_url }}" alt="Ingredient Frequency Graph" />
+            </div>
+        {% endif %}
+
         <!-- 검색 결과 -->
         <div class="row" style="margin-bottom: 300px;">
             {% if recipes %}

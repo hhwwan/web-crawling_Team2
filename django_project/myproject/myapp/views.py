@@ -1,13 +1,27 @@
 import json
+import seaborn as sns
+import matplotlib.pyplot as plt
+import base64
+import requests
+import concurrent.futures
+from collections import Counter
+from io import BytesIO
 from django.shortcuts import render
 
+# 한글 폰트 설정 (Windows에서 한글 폰트 경로를 설정)
+plt.rcParams['font.family'] = 'Malgun Gothic'  # Windows의 경우 'Malgun Gothic'을 사용
+
+# API 설정
+API_KEY = "AIzaSyBxPz3lopyrSdiisdbb49Bh9CoAnyiMie8"  # 구글 번역 API 키
+USDA_API_KEY = "NncATZrKuB07r2DmsliUslTXTnxfdYmfDDqpiod9"  # USDA API 키
+Translate_BASE_URL = "https://translation.googleapis.com/language/translate/v2"
+USDA_BASE_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
 
 # JSON 파일 로드 함수
 def load_recipes():
     with open("data/recipes.json", "r", encoding="utf-8") as file:
         recipes = json.load(file)
     return recipes
-
 
 # 메인 페이지 뷰 함수
 def index(request):
@@ -33,6 +47,7 @@ def index(request):
                 "selected_level": "",
                 "selected_time": "",
                 "error_message": None,
+                "graph_url": None  # 그래프 URL은 기본적으로 None
             },
         )
 
@@ -61,6 +76,9 @@ def index(request):
     # 고유한 Level 값 추출
     unique_levels = sorted(set(recipe["Level"] for recipe in recipes))
 
+    # 필터링된 데이터를 기반으로 그래프 생성
+    graph_url = generate_graph(filtered_recipes)
+
     return render(
         request,
         "index.html",
@@ -71,9 +89,9 @@ def index(request):
             "selected_level": selected_level,
             "selected_time": selected_time,
             "error_message": error_message,
+            "graph_url": graph_url  # 그래프 URL을 템플릿에 전달
         },
     )
-
 
 # Time 필터 함수
 def filter_by_time(recipes, time_range):
@@ -104,7 +122,6 @@ def filter_by_time(recipes, time_range):
         if time_mappings[time_range](parse_time(recipe.get("Time", "999분")))
     ]
 
-
 # 상세 정보 뷰 함수
 def recipe_detail(request, recipe_id):
     recipes = load_recipes()  # JSON 데이터 로드
@@ -116,4 +133,156 @@ def recipe_detail(request, recipe_id):
     # "Recipe steps"를 "recipe_steps"로 변경
     recipe["recipe_steps"] = recipe.pop("Recipe steps")
 
-    return render(request, "recipe_detail.html", {"recipe": recipe})
+    # 그래프 URL 생성
+    graph_url = nutrition_graph(recipe_id)
+
+    return render(request, "recipe_detail.html", {"recipe": recipe, "graph_url": graph_url})
+
+# 조건에 따른 재료 그래프 생성 함수 / url 사용
+def generate_graph(filtered_recipes):
+    # 재료 key들을 저장할 리스트
+    ingredients_keys = []
+
+    # 필터링된 레시피 데이터에서 Ingredients 추출
+    for recipe in filtered_recipes:
+        ingredients = recipe.get("Ingredients", {})
+        ingredients_keys.extend(ingredients.keys())
+
+    # 재료 key들의 빈도 계산 (Counter 사용)
+    ingredient_count = Counter(ingredients_keys)
+
+    # 상위 20개 재료 추출
+    top_20_ingredients = ingredient_count.most_common(20)
+
+    # 시각화 준비
+    ingredients, counts = zip(*top_20_ingredients)  # 재료 이름과 빈도를 분리
+
+    # seaborn을 사용하여 막대그래프 그리기
+    plt.figure(figsize=(6.4, 4.5))
+    sns.barplot(x=list(ingredients), y=list(counts), palette='Blues_d')
+    plt.xlabel('Ingredients')
+    plt.ylabel('Frequency')
+    plt.title('Top 20 Ingredients')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    # 그래프를 BytesIO 객체에 저장하고 base64로 인코딩
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    graph_url = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    buffer.close()
+
+    return graph_url
+
+# 재료 번역 함수
+def translate_text(text, target_language="en"):
+    url = f"{Translate_BASE_URL}?key={API_KEY}"
+    params = {
+        "q": text,
+        "target": target_language
+    }
+    
+    response = requests.post(url, data=params)
+    if response.status_code == 200:
+        result = response.json()
+        return result["data"]["translations"][0]["translatedText"]
+    else:
+        raise Exception(f"Translation API error: {response.status_code}")
+
+# 주어진 재료에 대해 영양 성분 정보 반환   
+def get_nutrition_info(ingredient):
+    # 재료명을 영어로 번역
+    ingredient_en = translate_text(ingredient)
+
+    # USDA API 설정
+    params = {
+        "query": ingredient_en,
+        "pageSize": 1,
+        "api_key": USDA_API_KEY
+    }
+    response = requests.get(USDA_BASE_URL, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        if data.get("foods"):
+            food = data["foods"][0]
+            nutrients = food.get("foodNutrients", [])
+            # 안전하게 영양 성분 정보 추출
+            nutrition_info = {
+                "name": food.get("description", "Unknown"),
+                "calories": next((item["value"] for item in nutrients if item["nutrientName"] == "Energy"), "N/A"),
+                "protein": next((item["value"] for item in nutrients if item["nutrientName"] == "Protein"), "N/A"),
+                "fat": next((item["value"] for item in nutrients if item["nutrientName"] == "Total lipid (fat)"), "N/A"),
+                "carbohydrates": next((item["value"] for item in nutrients if item["nutrientName"] == "Carbohydrate, by difference"), "N/A")
+            }
+            return nutrition_info
+    return {"error": f"No data found for {ingredient}"}
+
+# 영양소 그래프 함수
+def nutrition_graph(recipe_id):
+    recipes = load_recipes()  # JSON 데이터 로드
+    recipe = next((r for r in recipes if r["ID"] == recipe_id), None)
+
+    ingredients = recipe.get("Ingredients", {})
+
+    # 영양 성분 합계를 위한 변수 초기화
+    total_calories = 0
+    total_protein = 0
+    total_fat = 0
+    total_carbohydrates = 0
+    
+    # 병렬로 영양 성분 정보를 요청하기 위해 ThreadPoolExecutor 사용
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # 각 재료에 대해 영양 정보를 비동기적으로 요청
+        future_to_ingredient = {executor.submit(get_nutrition_info, name): name for name in ingredients.keys()}
+        
+        for future in concurrent.futures.as_completed(future_to_ingredient):
+            name = future_to_ingredient[future]
+            nutrition_info = future.result()
+            
+            if "error" in nutrition_info:
+                print(nutrition_info["error"])
+            else:
+                calories = nutrition_info["calories"]
+                protein = nutrition_info["protein"]
+                fat = nutrition_info["fat"]
+                carbohydrates = nutrition_info["carbohydrates"]
+                
+                try:
+                    total_calories += float(calories) if calories != "N/A" else 0
+                    total_protein += float(protein) if protein != "N/A" else 0
+                    total_fat += float(fat) if fat != "N/A" else 0
+                    total_carbohydrates += float(carbohydrates) if carbohydrates != "N/A" else 0
+                except ValueError:
+                    pass
+
+    # 원형 그래프 시각화 (칼로리 제외, 탄단지만 포함)
+    labels = ['Protein', 'Fat', 'Carbohydrates']
+    values = [total_protein, total_fat, total_carbohydrates]
+    
+    # 원형 그래프 시각화 (칼로리 제외, 탄단지로만 표시)
+    labels = ['단백질', '지방', '탄수화물']
+    values = [total_protein, total_fat, total_carbohydrates]
+    
+    # 그래프 그리기
+    plt.figure(figsize=(3,3))
+    plt.pie(values, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#66b3ff','#ff9999','#99ff99'])
+    
+    # 제목에 레시피 제목 추가 및 총 칼로리 텍스트 추가
+    title = f"{recipe['Title']}"
+    total_calories_text = f"총 칼로리: {total_calories} kcal"
+    
+    # 제목 및 칼로리 텍스트 위치 설정
+    plt.title(title, fontsize=10)  # 제목 크기 증가
+    plt.text(0, -1.2, total_calories_text, ha='center', va='center', fontsize=12, color='black')  # 칼로리 텍스트 아래로 이동
+
+    plt.axis('equal')  # 원형 그래프 유지
+
+    # 그래프를 BytesIO 객체에 저장하고 base64로 인코딩
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    graph_url = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    buffer.close()
+
+    return graph_url

@@ -124,7 +124,14 @@
 
                 <!-- 차트 오른쪽 -->
                 <div class="chart-container">
-                    <canvas id="pieChart"></canvas>
+                    {% if graph_url %}
+                        <div class="text-center my-4">
+                            <h3>Most Frequent Ingredients</h3>
+                            <img src="data:image/png;base64,{{ graph_url }}" alt="Ingredient Frequency Graph" />
+                        </div>
+                    {% else %}
+                        <p>No graph available</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -146,7 +153,7 @@
     <!-- Bootstrap JS (optional, for components like modals) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
+    <!-- <script>
         // 파이 차트 데이터
         var pieData = {
             labels: [{% for ingredient, amount in recipe.Ingredients.items %}"{{ ingredient }}",{% endfor %}],
@@ -163,7 +170,7 @@
             type: 'pie',
             data: pieData
         });
-    </script>
+    </script> -->
 </body>
 </html>
 {% endblock %}
