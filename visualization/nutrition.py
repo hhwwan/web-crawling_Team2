@@ -121,11 +121,9 @@ def process_json_file(json_file):
         plt.figure(figsize=(6, 6))
         plt.pie(values, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#66b3ff','#ff9999','#99ff99'])
         
-        title = f"{recipe['Title']}"
+        # 총 칼로리 텍스트 추가 및 텍스트 위치 설정
         total_calories_text = f"총 칼로리: {total_calories} kcal"
-        
-        plt.title(title, fontsize=15)
-        plt.text(0, -1.2, total_calories_text, ha='center', va='center', fontsize=12, color='black')
+        plt.text(0, -1.2, total_calories_text, ha='center', va='center', fontsize=12, color='black')  # 칼로리 텍스트 아래로 이동
         plt.axis('equal')
         plt.show()
 

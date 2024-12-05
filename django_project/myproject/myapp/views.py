@@ -265,15 +265,11 @@ def nutrition_graph(recipe_id):
     values = [total_protein, total_fat, total_carbohydrates]
     
     # 그래프 그리기
-    plt.figure(figsize=(3,3))
+    plt.figure(figsize=(4,4))
     plt.pie(values, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#66b3ff','#ff9999','#99ff99'])
     
-    # 제목에 레시피 제목 추가 및 총 칼로리 텍스트 추가
-    title = f"{recipe['Title']}"
+    # 총 칼로리 텍스트 추가 및 텍스트 위치 설정
     total_calories_text = f"총 칼로리: {total_calories} kcal"
-    
-    # 제목 및 칼로리 텍스트 위치 설정
-    plt.title(title, fontsize=10)  # 제목 크기 증가
     plt.text(0, -1.2, total_calories_text, ha='center', va='center', fontsize=12, color='black')  # 칼로리 텍스트 아래로 이동
 
     plt.axis('equal')  # 원형 그래프 유지
