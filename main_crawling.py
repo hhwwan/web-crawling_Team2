@@ -77,8 +77,6 @@ def extract_tools(recipe_url):
         return list({tool.get_text(strip=True) for tool in tool_names})  # 중복 제거
     return []
 
-from bs4 import BeautifulSoup
-
 def extract_recipe_data(recipe_url):
     """레시피 페이지에서 조리 순서 추출"""
     recipe_soup = fetch_recipe_html(recipe_url)
@@ -187,9 +185,9 @@ def ETL_process(page_num):
 
 def main():
     # 1페이지부터 2페이지까지 크롤링
-    for page_num in range(1, 2):  # 페이지 번호 1~2
+    for page_num in range(236, 301):  # 페이지 번호 1~2 # 275
         ETL_process(page_num)
-        t.sleep(0.5)  # 요청 간 0.5초 지연
+        t.sleep(1)  # 요청 간 0.5초 지연
 
 
 if __name__ == '__main__':
