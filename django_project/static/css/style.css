@@ -10,6 +10,16 @@ h1 {
     text-align: center;
 }
 
+.background-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                url('{% static "image/ingredients_wordcloud.png" %}');
+    background-size: cover; /* 요소 내부에 이미지를 완전히 맞춤 */
+    background-position: center; /* 이미지 중앙 정렬 */
+    background-repeat: no-repeat; /* 반복 방지 */
+    height: 100vh; /* 화면 높이를 꽉 채움 */
+    padding: 20px; /* 내부 여백 */
+}
+
 /* 검색 폼 */
 .search-form {
     margin: 20px auto;

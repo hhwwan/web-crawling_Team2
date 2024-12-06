@@ -18,7 +18,7 @@
         </div>
 
         <h1 class="text-center my-4 mt-3">레시피 검색기</h1>
-
+        
         <!-- 검색 폼 -->
         <form class="search-form shadow-sm p-4 mb-4 bg-white rounded mt-5" method="get" action="{% url 'index' %}">
             <div class="row mb-3">
@@ -61,46 +61,52 @@
         </form>
 
         <hr>
-
-        <!-- 에러 메시지 -->
-        {% if error_message %}
-            <p class="error-message text-center">{{ error_message }}</p>
-        {% endif %}
-
-        <!-- 그래프 표시 -->
-        {% if graph_url %}
-            <div class="text-left my-4">
-                <h3>Most Frequent Ingredients</h3>
-                <img src="data:image/png;base64,{{ graph_url }}" alt="Ingredient Frequency Graph" />
-            </div>
-        {% endif %}
-
-        <!-- 검색 결과 -->
-        <div class="row" style="margin-bottom: 300px;">
-            {% if recipes %}
-                {% for recipe in recipes %}
-                    <div class="col-md-6 recipe-card">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <a href="{% url 'recipe_detail' recipe.ID %}" class="text-decoration-none">
-                                        {{ recipe.Title }}
-                                    </a>
-                                </h5>
-                                <p class="card-text"><strong>Serving:</strong> {{ recipe.Serving }}</p>
-                                <p class="card-text"><strong>Time:</strong> {{ recipe.Time }}</p>
-                                <p class="card-text"><strong>Level:</strong> {{ recipe.Level }}</p>
-                                <p class="card-text"><strong>Ingredients:</strong> {{ recipe.Ingredients|join:", " }}</p>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                {% if query %}
-                <p class="text-center" style="font-size: 1.2em;">검색 결과가 없습니다</p>
+        {% if error_message or query %}
+            <div class="content">
+                <!-- 에러 메시지 -->
+                {% if error_message %}
+                    <p class="error-message text-center">{{ error_message }}</p>
                 {% endif %}
-            {% endif %}
-        </div>
+        
+                <!-- 그래프 표시 -->
+                {% if graph_url %}
+                    <div class="text-left my-4">
+                        <h3>Most Frequent Ingredients</h3>
+                        <img src="data:image/png;base64,{{ graph_url }}" alt="Ingredient Frequency Graph" />
+                    </div>
+                {% endif %}
+        
+                <!-- 검색 결과 -->
+                <div class="row" style="margin-bottom: 300px;">
+                    {% if recipes %}
+                        {% for recipe in recipes %}
+                            <div class="col-md-6 recipe-card">
+                                <div class="card shadow-sm">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a href="{% url 'recipe_detail' recipe.ID %}" class="text-decoration-none">
+                                                {{ recipe.Title }}
+                                            </a>
+                                        </h5>
+                                        <p class="card-text"><strong>Serving:</strong> {{ recipe.Serving }}</p>
+                                        <p class="card-text"><strong>Time:</strong> {{ recipe.Time }}</p>
+                                        <p class="card-text"><strong>Level:</strong> {{ recipe.Level }}</p>
+                                        <p class="card-text"><strong>Ingredients:</strong> {{ recipe.Ingredients|join:", " }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        {% if query %}
+                            <p class="text-center" style="font-size: 1.2em;">검색 결과가 없습니다</p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="background-section" style="background-image: url('{% static "image/ingredients_wordcloud.png" %}');"></div>
+        {% endif %}
+        
 
         <div class="pagination-container text-center">
             <nav aria-label="Page navigation">
