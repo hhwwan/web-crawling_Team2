@@ -29,7 +29,7 @@
 
 ### Visualization
 + Matplotlib
-+ seaborn
++ Seaborn
 + Wordcloud
 
 ### 협업
