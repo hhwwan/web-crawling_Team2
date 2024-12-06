@@ -160,6 +160,9 @@ def generate_graph(filtered_recipes):
     # 상위 20개 재료 추출
     top_20_ingredients = ingredient_count.most_common(20)
 
+    if not top_20_ingredients:
+        return None
+
     # 시각화 준비
     ingredients, counts = zip(*top_20_ingredients)  # 재료 이름과 빈도를 분리
 

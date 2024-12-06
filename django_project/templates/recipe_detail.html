@@ -101,9 +101,9 @@
         </div>
 
         <div class="section">
-            <h2>재료</h2>
             <div class="table-container">
                 <div class="table-responsive" style="width: 50%;"> <!-- 테이블 왼쪽 -->
+                    <h2 class="text-center">재료</h2>
                     <table class="table" style="border-collapse: collapse; table-layout: auto;">
                         <thead>
                             <tr>
@@ -126,7 +126,7 @@
                 <div class="chart-container">
                     {% if graph_url %}
                         <div class="text-center my-4">
-                            <h3>영양성분 표</h3>
+                            <h2>영양성분 표</h2>
                             <img src="data:image/png;base64,{{ graph_url }}" alt="Ingredient Frequency Graph" />
                         </div>
                     {% else %}
@@ -137,7 +137,7 @@
         </div>
 
         <div class="section">
-            <h2>조리 방법</h2>
+            <h2 class="mt-5 text-center">조리 방법</h2>
             <br>
             <ol>
                 {% for step in recipe.recipe_steps %}
