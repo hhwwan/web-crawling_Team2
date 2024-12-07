@@ -8,6 +8,7 @@ from collections import Counter
 from io import BytesIO
 from django.shortcuts import render
 from django.core.paginator import Paginator
+import random
 
 
 # 한글 폰트 설정 (Windows에서 한글 폰트 경로를 설정)
@@ -29,6 +30,13 @@ def load_recipes():
 def index(request):
     recipes = load_recipes()  # JSON 데이터 로드
 
+    #랜덤 배경 이미지, 이미지 경로
+    background_images = [
+        "image/time_distribution_barplot.png",
+        "image/ingredients_wordcloud.png",
+    ]
+    selected_background = random.choice(background_images)
+    
     # GET 파라미터
     query = request.GET.get("ingredient", "")  # 재료 검색
     selected_level = request.GET.get("level", "")  # Level 검색
@@ -50,6 +58,7 @@ def index(request):
                 "error_message": None,
                 "graph_url": None,
                 "page_obj": None,  # 페이지 객체 초기화
+                "selected_background": selected_background, #배경사진 주소값
             },
         )
 
@@ -291,3 +300,16 @@ def nutrition_graph(recipe_id):
     buffer.close()
 
     return graph_url
+
+# import random
+
+# def random_choice(request):
+#     background_images = [
+#         "image/time_distribution_barplot.png",
+#         "image/ingredients_wordcloud.png",
+#     ]
+    
+#     selected_background = random.choice(background_images)
+#     print(f"Selected background: {selected_background}")
+    
+#     return render(request, "index.html", {"selected_background": selected_background})

@@ -104,7 +104,8 @@
                 </div>
             </div>
         {% else %}
-            <div class="background-section" style="background-image: url('{% static "image/ingredients_wordcloud.png" %}');"></div>
+        <div class="background-section" style="background-image: url('{% static selected_background %}');"></div>
+        <p>{{ test_variable }}</p>
         {% endif %}
         
 
