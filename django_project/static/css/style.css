@@ -11,8 +11,7 @@ h1 {
 }
 
 .background-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
-                url('{% static "image/ingredients_wordcloud.png" %}');
+    background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('{% static "image/ingredients_wordcloud.png" %}');
     background-size: cover; /* 요소 내부에 이미지를 완전히 맞춤 */
     background-position: center; /* 이미지 중앙 정렬 */
     background-repeat: no-repeat; /* 반복 방지 */
