@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import base64
 import requests
 import concurrent.futures
+import matplotlib.colors as mcolors
 from collections import Counter
 from io import BytesIO
 from django.shortcuts import render
@@ -175,9 +176,21 @@ def generate_graph(filtered_recipes):
     # 시각화 준비
     ingredients, counts = zip(*top_20_ingredients)  # 재료 이름과 빈도를 분리
 
+    # 파란색 그라데이션 컬러 맵 생성
+    blue_gradient = mcolors.LinearSegmentedColormap.from_list(
+        "blue_gradient", ["#007bff", "#0056b3", "#003d7a", "#001f3f"], N=256  # #007bff에서 점차 밝아지는 색상으로 그라데이션
+    )
+
+    # 그라데이션 색을 리스트로 변환
+    gradient_colors = [blue_gradient(i / 255) for i in range(256)]
+    gradient_hex_colors = [mcolors.to_hex(c) for c in gradient_colors]
+
+    # 상위 20개의 재료에 대해 색상 선택
+    selected_colors = gradient_hex_colors[:20]
+
     # seaborn을 사용하여 막대그래프 그리기
-    plt.figure(figsize=(6.4, 4.5))
-    sns.barplot(x=list(ingredients), y=list(counts), palette='Blues_d')
+    plt.figure(figsize=(9, 5))
+    sns.barplot(x=list(ingredients), y=list(counts), palette=selected_colors)
     plt.xlabel('Ingredients')
     plt.ylabel('Frequency')
     plt.title('Top 20 Ingredients')

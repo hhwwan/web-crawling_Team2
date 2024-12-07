@@ -70,8 +70,8 @@
         
                 <!-- 그래프 표시 -->
                 {% if graph_url %}
-                    <div class="text-left my-4">
-                        <h3>Most Frequent Ingredients</h3>
+                    <div class="text-center my-4">
+                        <h3>{{ query }}와 같이 사용되는 재료 Top 20</h3>
                         <img src="data:image/png;base64,{{ graph_url }}" alt="Ingredient Frequency Graph" />
                     </div>
                 {% endif %}
