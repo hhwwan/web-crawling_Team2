@@ -178,15 +178,13 @@ def generate_graph(filtered_recipes):
 
     # 파란색 그라데이션 컬러 맵 생성
     blue_gradient = mcolors.LinearSegmentedColormap.from_list(
-        "blue_gradient", ["#007bff", "#0056b3", "#003d7a", "#001f3f"], N=256  # #007bff에서 점차 밝아지는 색상으로 그라데이션
+        "blue_gradient", ["#66B2FF", "#3399FF", "#007bff"], N=256  # #007bff에서 점차 밝아지는 색상으로 그라데이션
     )
 
-    # 그라데이션 색을 리스트로 변환
-    gradient_colors = [blue_gradient(i / 255) for i in range(256)]
-    gradient_hex_colors = [mcolors.to_hex(c) for c in gradient_colors]
-
-    # 상위 20개의 재료에 대해 색상 선택
-    selected_colors = gradient_hex_colors[:20]
+    # 상위 20개의 재료에 대해 빈도 기반 색상 매핑
+    max_count = max(counts) if counts else 1  # 빈도 최댓값
+    normalized_counts = [count / max_count for count in counts]  # 빈도를 [0, 1] 범위로 정규화
+    selected_colors = [mcolors.to_hex(blue_gradient(value)) for value in normalized_counts]
 
     # seaborn을 사용하여 막대그래프 그리기
     plt.figure(figsize=(9, 5))
